@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: polarchatbot-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true

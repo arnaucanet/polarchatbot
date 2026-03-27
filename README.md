@@ -36,6 +36,52 @@ npm run dev
 npm start
 ```
 
+## Deploy en Render + PlanetScale
+
+### 1) Crear base de datos en PlanetScale
+
+- Crea una base nueva (por ejemplo `chatbotpolar`).
+- En PlanetScale, abre `Connect` y copia la `DATABASE_URL` de Node.js.
+- Asegurate de usar SSL estricto (`sslaccept=strict`).
+
+### 2) Variables en Render
+
+En tu servicio web de Render, configura estas variables:
+
+- `APP_ENV=production`
+- `PORT=10000` (Render inyecta PORT, esta opcion es solo referencia)
+- `OPENAI_API_KEY=...`
+- `OPENAI_MODEL=gpt-4o-mini`
+- `DATABASE_URL=mysql://usuario:password@aws.connect.psdb.cloud/chatbotpolar?sslaccept=strict`
+- `DB_SSL_REQUIRED=1`
+- `ALLOWED_ORIGINS=https://tu-dominio-frontend.com`
+- `MAX_MESSAGE_LENGTH=600`
+- `CHAT_RATE_LIMIT_MAX=20`
+- `CHAT_RATE_LIMIT_WINDOW=60`
+- `DATA_RATE_LIMIT_MAX=120`
+- `DATA_RATE_LIMIT_WINDOW=60`
+
+### 3) Crear tablas en PlanetScale
+
+Ejecuta el contenido de `sql/chatbot_tables.sql` en la consola SQL de PlanetScale
+o ejecuta localmente:
+
+```bash
+npm run migrate:chatbot
+```
+
+### 4) Configurar Render
+
+- Conecta tu repo a Render.
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Health Check Path: `/health`
+
+### 5) Probar endpoint
+
+- `GET /health`
+- `POST /api/v1/chat` con headers `x-user-id` y `x-api-key`
+
 ## Endpoints
 
 - `GET /health`
