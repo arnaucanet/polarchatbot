@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const pool = require("../src/db/mysql");
+const db = require("../src/db/mysql");
 
 async function main() {
   const sqlFile = path.join(__dirname, "..", "sql", "chatbot_tables.sql");
@@ -12,17 +12,17 @@ async function main() {
     .filter(Boolean);
 
   for (const statement of statements) {
-    await pool.query(statement);
+    await db.query(statement);
   }
 
   console.log("chatbot tables verified/created successfully");
-  await pool.end();
+  await db.end();
 }
 
 main().catch(async (error) => {
   console.error("Failed to verify chatbot tables:", error.message);
   try {
-    await pool.end();
+    await db.end();
   } catch {
     // ignore close errors
   }

@@ -1,12 +1,12 @@
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 const env = require("../config/env");
 
-const pool = mysql.createPool({
+const pool = new Pool({
   ...env.dbConfig,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  charset: "utf8mb4"
+  max: 10
 });
 
-module.exports = pool;
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+  end: () => pool.end()
+};

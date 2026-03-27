@@ -1,11 +1,11 @@
 # Polar Chatbot API Backend
 
-Backend API avanzada para chatbot con OpenAI + MySQL, autenticacion por API key, validacion de dominio, rate limits y logging por cliente.
+Backend API avanzada para chatbot con OpenAI + PostgreSQL (Supabase), autenticacion por API key, validacion de dominio, rate limits y logging por cliente.
 
 ## Requisitos
 
 - Node.js 18+
-- MySQL 8+
+- PostgreSQL 14+ (Supabase recomendado)
 
 ## Instalacion
 
@@ -36,13 +36,12 @@ npm run dev
 npm start
 ```
 
-## Deploy en Render + PlanetScale
+## Deploy en Render + Supabase
 
-### 1) Crear base de datos en PlanetScale
+### 1) Crear base de datos en Supabase
 
-- Crea una base nueva (por ejemplo `chatbotpolar`).
-- En PlanetScale, abre `Connect` y copia la `DATABASE_URL` de Node.js.
-- Asegurate de usar SSL estricto (`sslaccept=strict`).
+- Abre `Connect` en Supabase y copia el `Connection string` (URI).
+- Debe verse como `postgresql://postgres:[PASSWORD]@db.<project-ref>.supabase.co:5432/postgres`.
 
 ### 2) Variables en Render
 
@@ -52,8 +51,9 @@ En tu servicio web de Render, configura estas variables:
 - `PORT=10000` (Render inyecta PORT, esta opcion es solo referencia)
 - `OPENAI_API_KEY=...`
 - `OPENAI_MODEL=gpt-4o-mini`
-- `DATABASE_URL=mysql://usuario:password@aws.connect.psdb.cloud/chatbotpolar?sslaccept=strict`
+- `DATABASE_URL=postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres`
 - `DB_SSL_REQUIRED=1`
+- `DB_SSL_REJECT_UNAUTHORIZED=0`
 - `ALLOWED_ORIGINS=https://tu-dominio-frontend.com`
 - `MAX_MESSAGE_LENGTH=600`
 - `CHAT_RATE_LIMIT_MAX=20`
@@ -61,9 +61,9 @@ En tu servicio web de Render, configura estas variables:
 - `DATA_RATE_LIMIT_MAX=120`
 - `DATA_RATE_LIMIT_WINDOW=60`
 
-### 3) Crear tablas en PlanetScale
+### 3) Crear tablas en Supabase
 
-Ejecuta el contenido de `sql/chatbot_tables.sql` en la consola SQL de PlanetScale
+Ejecuta el contenido de `sql/chatbot_tables.sql` en la consola SQL de Supabase
 o ejecuta localmente:
 
 ```bash

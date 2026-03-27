@@ -2,6 +2,12 @@ const bcrypt = require("bcryptjs");
 const { findByUserId } = require("../repositories/clientRepository");
 const { AppError } = require("../utils/errors");
 
+function normalizeBcryptHash(hash) {
+  if (typeof hash !== "string") return hash;
+  if (hash.startsWith("$2y$")) return `$2a$${hash.slice(4)}`;
+  return hash;
+}
+
 async function validateClientCredentials({ userId, apiKey, originHost }) {
   if (!userId || !apiKey) {
     throw new AppError("Missing x-user-id or x-api-key header", 401);
@@ -17,7 +23,8 @@ async function validateClientCredentials({ userId, apiKey, originHost }) {
     throw new AppError("Client is inactive", 403);
   }
 
-  const isValidApiKey = await bcrypt.compare(apiKey, client.api_key_hash);
+  const normalizedHash = normalizeBcryptHash(client.api_key_hash);
+  const isValidApiKey = await bcrypt.compare(apiKey, normalizedHash);
   if (!isValidApiKey) {
     throw new AppError("Invalid API key", 401);
   }

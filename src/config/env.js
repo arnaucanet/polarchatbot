@@ -13,8 +13,9 @@ const envSchema = z.object({
   DB_NAME: z.string().optional(),
   DB_USER: z.string().optional(),
   DB_PASS: z.string().optional(),
-  DB_PORT: z.coerce.number().int().positive().default(3306),
+  DB_PORT: z.coerce.number().int().positive().default(5432),
   DB_SSL_REQUIRED: z.enum(["0", "1"]).default("1"),
+  DB_SSL_REJECT_UNAUTHORIZED: z.enum(["0", "1"]).default("0"),
   ALLOWED_ORIGINS: z.string().default("*"),
   MAX_MESSAGE_LENGTH: z.coerce.number().int().positive().default(600),
   CHAT_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
@@ -34,39 +35,29 @@ if (!parsed.success) {
 
 const env = parsed.data;
 
-let dbHost = env.DB_HOST;
-let dbPort = env.DB_PORT;
-let dbUser = env.DB_USER;
-let dbPass = env.DB_PASS;
-let dbName = env.DB_NAME;
+const sslConfig = env.DB_SSL_REQUIRED === "1"
+  ? { rejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED === "1" }
+  : undefined;
 
 if (env.DATABASE_URL) {
-  let dbUrl;
-  try {
-    dbUrl = new URL(env.DATABASE_URL);
-  } catch {
-    throw new Error("Invalid DATABASE_URL format");
+  env.dbConfig = {
+    connectionString: env.DATABASE_URL,
+    ssl: sslConfig
+  };
+} else {
+  if (!env.DB_HOST || !env.DB_USER || !env.DB_NAME) {
+    throw new Error("Database configuration missing. Use DATABASE_URL or DB_HOST/DB_USER/DB_NAME.");
   }
 
-  dbHost = dbUrl.hostname;
-  dbPort = dbUrl.port ? Number(dbUrl.port) : 3306;
-  dbUser = decodeURIComponent(dbUrl.username || "");
-  dbPass = decodeURIComponent(dbUrl.password || "");
-  dbName = decodeURIComponent((dbUrl.pathname || "").replace(/^\//, ""));
+  env.dbConfig = {
+    host: env.DB_HOST,
+    port: env.DB_PORT,
+    user: env.DB_USER,
+    password: env.DB_PASS || "",
+    database: env.DB_NAME,
+    ssl: sslConfig
+  };
 }
-
-if (!dbHost || !dbUser || !dbName) {
-  throw new Error("Database configuration missing. Use DATABASE_URL or DB_HOST/DB_USER/DB_NAME.");
-}
-
-env.dbConfig = {
-  host: dbHost,
-  port: dbPort,
-  user: dbUser,
-  password: dbPass || "",
-  database: dbName,
-  ssl: env.DB_SSL_REQUIRED === "1" ? { rejectUnauthorized: true } : undefined
-};
 
 env.allowedOrigins = env.ALLOWED_ORIGINS === "*"
   ? ["*"]

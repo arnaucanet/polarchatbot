@@ -1,20 +1,23 @@
 CREATE TABLE IF NOT EXISTS chatbot_clients (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id VARCHAR(80) NOT NULL UNIQUE,
     api_key_hash VARCHAR(255) NOT NULL,
     allowed_domain VARCHAR(255) DEFAULT NULL,
-    status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+    status VARCHAR(8) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     rate_limit_per_min INT NOT NULL DEFAULT 30,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chatbot_clients_user_id ON chatbot_clients (user_id);
 
 CREATE TABLE IF NOT EXISTS chatbot_logs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id VARCHAR(80) NOT NULL,
     ip VARCHAR(64) NOT NULL,
     message_length INT NOT NULL,
     response_code INT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_chatbot_logs_user_date (user_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chatbot_logs_user_date ON chatbot_logs (user_id, created_at);
