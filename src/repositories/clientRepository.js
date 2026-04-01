@@ -12,6 +12,17 @@ async function findByUserId(userId) {
   return rows[0] || null;
 }
 
+async function findActiveClients() {
+  const { rows } = await pool.query(
+    `SELECT id, user_id, api_key_hash, allowed_domain, status, rate_limit_per_min
+     FROM chatbot_clients
+     WHERE status = 'active'`
+  );
+
+  return rows;
+}
+
 module.exports = {
-  findByUserId
+  findByUserId,
+  findActiveClients
 };

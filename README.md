@@ -80,7 +80,7 @@ npm run migrate:chatbot
 ### 5) Probar endpoint
 
 - `GET /health`
-- `POST /api/v1/chat` con headers `x-user-id` y `x-api-key`
+- `POST /api/v1/chat` con header `x-api-key`
 
 ## Endpoints
 
@@ -89,7 +89,6 @@ npm run migrate:chatbot
 
 ### Headers requeridos para chat
 
-- `x-user-id`
 - `x-api-key`
 - `Content-Type: application/json`
 

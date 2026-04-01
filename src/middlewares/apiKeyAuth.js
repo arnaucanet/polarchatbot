@@ -17,11 +17,10 @@ function readOriginHost(req) {
 
 async function apiKeyAuth(req, _res, next) {
   try {
-    const userId = req.headers["x-user-id"];
     const apiKey = req.headers["x-api-key"];
     const originHost = readOriginHost(req);
 
-    const client = await validateClientCredentials({ userId, apiKey, originHost });
+    const client = await validateClientCredentials({ apiKey, originHost });
     req.client = client;
     next();
   } catch (error) {

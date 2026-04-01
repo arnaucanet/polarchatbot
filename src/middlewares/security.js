@@ -16,7 +16,7 @@ const corsMiddleware = cors({
     return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-user-id", "x-api-key"]
+  allowedHeaders: ["Content-Type", "x-api-key"]
 });
 
 const chatRateLimit = rateLimit({

@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { findByUserId } = require("../repositories/clientRepository");
+const { findActiveClients } = require("../repositories/clientRepository");
 const { AppError } = require("../utils/errors");
 
 function normalizeBcryptHash(hash) {
@@ -8,32 +8,31 @@ function normalizeBcryptHash(hash) {
   return hash;
 }
 
-async function validateClientCredentials({ userId, apiKey, originHost }) {
-  if (!userId || !apiKey) {
-    throw new AppError("Missing x-user-id or x-api-key header", 401);
+async function validateClientCredentials({ apiKey, originHost }) {
+  if (!apiKey) {
+    throw new AppError("Missing x-api-key header", 401);
   }
 
-  const client = await findByUserId(userId);
-
-  if (!client) {
-    throw new AppError("Client not found", 401);
+  const activeClients = await findActiveClients();
+  if (!activeClients.length) {
+    throw new AppError("No active clients configured", 401);
   }
 
-  if (client.status !== "active") {
-    throw new AppError("Client is inactive", 403);
+  for (const client of activeClients) {
+    const normalizedHash = normalizeBcryptHash(client.api_key_hash);
+    const isValidApiKey = await bcrypt.compare(apiKey, normalizedHash);
+    if (!isValidApiKey) {
+      continue;
+    }
+
+    if (client.allowed_domain && originHost && client.allowed_domain.toLowerCase() !== originHost.toLowerCase()) {
+      throw new AppError("Domain not allowed for this client", 403);
+    }
+
+    return client;
   }
 
-  const normalizedHash = normalizeBcryptHash(client.api_key_hash);
-  const isValidApiKey = await bcrypt.compare(apiKey, normalizedHash);
-  if (!isValidApiKey) {
-    throw new AppError("Invalid API key", 401);
-  }
-
-  if (client.allowed_domain && originHost && client.allowed_domain.toLowerCase() !== originHost.toLowerCase()) {
-    throw new AppError("Domain not allowed for this client", 403);
-  }
-
-  return client;
+  throw new AppError("Invalid API key", 401);
 }
 
 module.exports = {
