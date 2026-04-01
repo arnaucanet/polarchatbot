@@ -8,6 +8,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
   OPENAI_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  OPENAI_INPUT_COST_PER_1M: z.coerce.number().nonnegative().default(0.15),
+  OPENAI_OUTPUT_COST_PER_1M: z.coerce.number().nonnegative().default(0.6),
   DATABASE_URL: z.string().optional(),
   DB_HOST: z.string().optional(),
   DB_NAME: z.string().optional(),

@@ -6,10 +6,16 @@ const { AppError } = require("../utils/errors");
 const env = require("../config/env");
 
 async function chat(req, res, next) {
+  const startedAt = Date.now();
   const userId = req.client?.user_id;
   const ip = req.ip || req.socket.remoteAddress || "unknown";
   let responseCode = 500;
   let messageLength = 0;
+  let usedModel = env.OPENAI_MODEL;
+  let promptTokens = null;
+  let completionTokens = null;
+  let totalTokens = null;
+  let estimatedCostUsd = null;
 
   try {
     const parsed = chatRequestSchema.safeParse(req.body);
@@ -25,13 +31,20 @@ async function chat(req, res, next) {
       maxPerMinute: req.client.rate_limit_per_min
     });
 
-    const reply = await getChatCompletion({ message });
+    const completion = await getChatCompletion({ message });
+    const { reply, model, usage } = completion;
+
+    usedModel = model || env.OPENAI_MODEL;
+    promptTokens = usage.promptTokens;
+    completionTokens = usage.completionTokens;
+    totalTokens = usage.totalTokens;
+    estimatedCostUsd = completion.estimatedCostUsd;
 
     responseCode = 200;
     res.status(200).json({
       ok: true,
       user_id: userId,
-      model: env.OPENAI_MODEL,
+      model: usedModel,
       reply
     });
   } catch (error) {
@@ -43,7 +56,13 @@ async function chat(req, res, next) {
         userId,
         ip,
         messageLength,
-        responseCode
+        responseCode,
+        model: usedModel,
+        latencyMs: Date.now() - startedAt,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        estimatedCostUsd
       }).catch(() => {});
     }
   }

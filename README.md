@@ -108,3 +108,30 @@ npm run migrate:chatbot
 - Rate limit global por endpoint
 - Rate limit por cliente (`rate_limit_per_min`)
 - Registro de requests en `chatbot_logs`
+
+## Tracking de consumo (usage)
+
+Cada request a `POST /api/v1/chat` guarda en `chatbot_logs`:
+
+- `user_id`
+- `ip`
+- `message_length`
+- `response_code`
+- `model`
+- `latency_ms`
+- `prompt_tokens`
+- `completion_tokens`
+- `total_tokens`
+- `estimated_cost_usd`
+
+`estimated_cost_usd` se calcula con:
+
+- `OPENAI_INPUT_COST_PER_1M` (default `0.15`)
+- `OPENAI_OUTPUT_COST_PER_1M` (default `0.6`)
+
+Puedes ajustar estos valores en tu `.env` segun el modelo real que uses.
+
+## Retencion de logs
+
+La API aplica retencion automatica de logs: al insertar un log nuevo, elimina
+registros con antiguedad mayor a 1 mes (`created_at < NOW() - INTERVAL '1 month'`).
